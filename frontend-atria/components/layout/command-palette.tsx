@@ -18,7 +18,9 @@ import {
 
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { TIME_CLOCK_ROUTE } from "@/components/layout/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { useHasActiveClockProfile } from "@/hooks/use-time-clock";
 import { canAccessRoute } from "@/lib/navigation-access";
 import { getAllNavLinks } from "@/lib/navigation-utils";
 import {
@@ -52,6 +54,7 @@ const GROUP_ORDER = [
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const hasActiveClockProfile = useHasActiveClockProfile();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
@@ -61,10 +64,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
   const navLinks = useMemo(
     () =>
-      getAllNavLinks().filter((link) =>
-        canAccessRoute(user?.role, link.href, user?.permissions),
-      ),
-    [user?.permissions, user?.role],
+      getAllNavLinks().filter((link) => {
+        if (link.href === TIME_CLOCK_ROUTE) return hasActiveClockProfile;
+        return canAccessRoute(user?.role, link.href, user?.permissions);
+      }),
+    [hasActiveClockProfile, user?.permissions, user?.role],
   );
 
   const loadData = useCallback(async () => {

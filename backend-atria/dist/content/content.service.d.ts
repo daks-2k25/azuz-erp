@@ -44,9 +44,9 @@ export declare class ContentService {
             clientId: string;
             client: {
                 id: string;
+                avatarUrl: string | null;
                 companyName: string;
                 instagram: string | null;
-                avatarUrl: string | null;
             };
             platform: "instagram" | "tiktok" | "youtube" | "linkedin";
             format: "carousel" | "reels" | "static" | "story";
@@ -101,9 +101,9 @@ export declare class ContentService {
         clientId: string;
         client: {
             id: string;
+            avatarUrl: string | null;
             companyName: string;
             instagram: string | null;
-            avatarUrl: string | null;
         };
         platform: "instagram" | "tiktok" | "youtube" | "linkedin";
         format: "carousel" | "reels" | "static" | "story";
@@ -141,9 +141,9 @@ export declare class ContentService {
         clientId: string;
         client: {
             id: string;
+            avatarUrl: string | null;
             companyName: string;
             instagram: string | null;
-            avatarUrl: string | null;
         };
         platform: "instagram" | "tiktok" | "youtube" | "linkedin";
         format: "carousel" | "reels" | "static" | "story";
@@ -196,9 +196,9 @@ export declare class ContentService {
         clientId: string;
         client: {
             id: string;
+            avatarUrl: string | null;
             companyName: string;
             instagram: string | null;
-            avatarUrl: string | null;
         };
         platform: "instagram" | "tiktok" | "youtube" | "linkedin";
         format: "carousel" | "reels" | "static" | "story";
@@ -236,9 +236,9 @@ export declare class ContentService {
         clientId: string;
         client: {
             id: string;
+            avatarUrl: string | null;
             companyName: string;
             instagram: string | null;
-            avatarUrl: string | null;
         };
         platform: "instagram" | "tiktok" | "youtube" | "linkedin";
         format: "carousel" | "reels" | "static" | "story";
@@ -276,9 +276,9 @@ export declare class ContentService {
         clientId: string;
         client: {
             id: string;
+            avatarUrl: string | null;
             companyName: string;
             instagram: string | null;
-            avatarUrl: string | null;
         };
         platform: "instagram" | "tiktok" | "youtube" | "linkedin";
         format: "carousel" | "reels" | "static" | "story";
@@ -395,9 +395,9 @@ export declare class ContentService {
         clientId: string;
         client: {
             id: string;
+            avatarUrl: string | null;
             companyName: string;
             instagram: string | null;
-            avatarUrl: string | null;
         };
         platform: "instagram" | "tiktok" | "youtube" | "linkedin";
         format: "carousel" | "reels" | "static" | "story";
@@ -435,9 +435,9 @@ export declare class ContentService {
         clientId: string;
         client: {
             id: string;
+            avatarUrl: string | null;
             companyName: string;
             instagram: string | null;
-            avatarUrl: string | null;
         };
         platform: "instagram" | "tiktok" | "youtube" | "linkedin";
         format: "carousel" | "reels" | "static" | "story";

@@ -14,6 +14,7 @@ export declare const Permission: {
     readonly DELIVERABLES_OWN: "deliverables:own";
     readonly FINANCE_ACCESS: "finance:access";
     readonly SETTINGS_MANAGE: "settings:manage";
+    readonly TIMECLOCK_MANAGE: "timeclock:manage";
 };
 export type PermissionKey = (typeof Permission)[keyof typeof Permission];
 export declare const ROLE_PERMISSIONS: Record<RoleName, PermissionKey[]>;

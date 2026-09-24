@@ -22,6 +22,7 @@ exports.Permission = {
     DELIVERABLES_OWN: 'deliverables:own',
     FINANCE_ACCESS: 'finance:access',
     SETTINGS_MANAGE: 'settings:manage',
+    TIMECLOCK_MANAGE: 'timeclock:manage',
 };
 exports.ROLE_PERMISSIONS = {
     [client_1.RoleName.MASTER]: [exports.Permission.SYSTEM_ALL],
@@ -34,6 +35,7 @@ exports.ROLE_PERMISSIONS = {
         exports.Permission.CRM_ALL,
         exports.Permission.FINANCE_ACCESS,
         exports.Permission.SETTINGS_MANAGE,
+        exports.Permission.TIMECLOCK_MANAGE,
     ],
     [client_1.RoleName.MANAGER]: [],
     [client_1.RoleName.USER]: [],

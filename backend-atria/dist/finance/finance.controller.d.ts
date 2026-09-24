@@ -23,9 +23,9 @@ export declare class FinanceController {
         updatedAt: Date;
         companyId: string;
         name: string;
-        code: string | null;
         type: import("@prisma/client").$Enums.TransactionType;
         color: string;
+        code: string | null;
         parentId: string | null;
         dreGroup: import("@prisma/client").$Enums.DreGroup | null;
         cashFlowBlock: import("@prisma/client").$Enums.CashFlowBlock;
@@ -433,9 +433,9 @@ export declare class FinanceController {
         updatedAt: Date;
         companyId: string;
         name: string;
-        code: string | null;
         type: import("@prisma/client").$Enums.TransactionType;
         color: string;
+        code: string | null;
         parentId: string | null;
         dreGroup: import("@prisma/client").$Enums.DreGroup | null;
         cashFlowBlock: import("@prisma/client").$Enums.CashFlowBlock;
@@ -447,9 +447,9 @@ export declare class FinanceController {
         updatedAt: Date;
         companyId: string;
         name: string;
-        code: string | null;
         type: import("@prisma/client").$Enums.TransactionType;
         color: string;
+        code: string | null;
         parentId: string | null;
         dreGroup: import("@prisma/client").$Enums.DreGroup | null;
         cashFlowBlock: import("@prisma/client").$Enums.CashFlowBlock;
@@ -461,9 +461,9 @@ export declare class FinanceController {
         updatedAt: Date;
         companyId: string;
         name: string;
-        code: string | null;
         type: import("@prisma/client").$Enums.TransactionType;
         color: string;
+        code: string | null;
         parentId: string | null;
         dreGroup: import("@prisma/client").$Enums.DreGroup | null;
         cashFlowBlock: import("@prisma/client").$Enums.CashFlowBlock;

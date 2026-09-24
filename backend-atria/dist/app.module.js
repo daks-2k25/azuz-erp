@@ -53,6 +53,7 @@ const settings_module_1 = require("./settings/settings.module");
 const sla_module_1 = require("./sla/sla.module");
 const suggestions_module_1 = require("./suggestions/suggestions.module");
 const supabase_module_1 = require("./supabase/supabase.module");
+const time_tracking_module_1 = require("./time-tracking/time-tracking.module");
 const user_groups_module_1 = require("./user-groups/user-groups.module");
 const users_module_1 = require("./users/users.module");
 const voice_module_1 = require("./voice/voice.module");
@@ -112,6 +113,7 @@ exports.AppModule = AppModule = __decorate([
             reports_module_1.ReportsModule,
             settings_module_1.SettingsModule,
             suggestions_module_1.SuggestionsModule,
+            time_tracking_module_1.TimeTrackingModule,
             user_groups_module_1.UserGroupsModule,
             users_module_1.UsersModule,
             voice_module_1.VoiceModule,

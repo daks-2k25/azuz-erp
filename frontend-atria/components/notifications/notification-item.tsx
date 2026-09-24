@@ -7,6 +7,7 @@ import {
   FileSignature,
   Inbox,
   Megaphone,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -24,6 +25,7 @@ interface NotificationItemProps {
 }
 
 function NotificationIcon({ type }: { type: AppNotification["type"] }) {
+  if (type === "time_clock_reminder") return <Clock className="size-4" />;
   const category = getNotificationCategory(type);
   if (category === "due_date") return <AlertTriangle className="size-4" />;
   if (category === "new_request") return <Inbox className="size-4" />;
