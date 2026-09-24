@@ -1,0 +1,988 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Company {
+  id                  String                       @id @default(uuid())
+  name                String
+  subdomain           String                       @unique(map: "Company_subdomain_idx")
+  status              Unsupported("CompanyStatus") @default(dbgenerated("'ACTIVE'::public.\"CompanyStatus\""))
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
+  metaAdAccountId     String?
+  metaPageAccessToken String?
+  metaAppId           String?
+  metaAppSecret       String?
+  apifyApiToken       String?
+  whatsappApiToken    String?
+  hasCrmModuleEnabled Boolean                      @default(false) @map("has_crm_module_enabled")
+}
+
+model Role {
+  id          String                  @id @default(uuid())
+  name        Unsupported("RoleName") @unique(map: "Role_name_idx")
+  description String?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  permissions String[]                @default([])
+}
+
+model User {
+  id                 String                      @id @default(uuid())
+  email              String
+  passwordHash       String
+  name               String
+  avatarUrl          String?
+  roleId             String
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+  monthlySalary      Decimal?                    @db.Decimal(12, 2)
+  userGroupId        String?
+  mustChangePassword Boolean                     @default(true)
+  temporaryPassword  String?
+  clientId           String?
+  companyId          String                      @default("00000000-0000-4000-8000-000000000001")
+  category           Unsupported("UserCategory") @default(dbgenerated("'MEMBER'::public.\"UserCategory\""))
+  isActive           Boolean                     @default(true)
+
+  @@unique([companyId, email], map: "User_companyId_email_idx")
+  @@index([clientId])
+  @@index([category])
+  @@index([companyId, category])
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model InvitationToken {
+  id          String                  @id @default(uuid())
+  token       String                  @unique(map: "invitation_tokens_token_idx")
+  role        Unsupported("RoleName")
+  companyId   String                  @default("00000000-0000-4000-8000-000000000001")
+  used        Boolean                 @default(false)
+  expiresAt   DateTime                @map("expires_at")
+  createdById String?                 @map("created_by_id")
+  createdAt   DateTime                @default(now()) @map("created_at")
+
+  @@index([companyId])
+  @@index([expiresAt])
+  @@index([token], map: "invitation_tokens_token_idx1")
+  @@map("invitation_tokens")
+}
+
+model CompanyRepresentative {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  userId    String   @map("user_id")
+  title     String?
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([companyId, userId], map: "company_representatives_company_id_user_id_idx")
+  @@index([companyId])
+  @@index([userId])
+  @@map("company_representatives")
+}
+
+model AuthToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique(map: "AuthToken_tokenHash_idx")
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  companyId String   @default("00000000-0000-4000-8000-000000000001")
+
+  @@index([companyId])
+}
+
+model FinancialCategory {
+  id        String                         @id @default(uuid())
+  name      String
+  type      Unsupported("TransactionType")
+  color     String                         @default("#004949")
+  createdAt DateTime                       @default(now())
+  updatedAt DateTime                       @updatedAt
+  companyId String                         @default("00000000-0000-4000-8000-000000000001")
+
+  @@unique([companyId, name, type], map: "FinancialCategory_companyId_name_type_idx")
+  @@index([companyId])
+}
+
+model FinancialTransaction {
+  id          String                           @id @default(uuid())
+  description String
+  amount      Decimal                          @db.Decimal(12, 2)
+  type        Unsupported("TransactionType")
+  status      Unsupported("TransactionStatus") @default(dbgenerated("'PENDING'::public.\"TransactionStatus\""))
+  date        DateTime
+  dueDate     DateTime?
+  categoryId  String
+  userId      String
+  createdAt   DateTime                         @default(now())
+  updatedAt   DateTime                         @updatedAt
+  contractId  String?
+  title       String?
+  clientId    String?
+  companyId   String                           @default("00000000-0000-4000-8000-000000000001")
+  deletedAt   DateTime?                        @map("deleted_at")
+  deletedById String?                          @map("deleted_by")
+
+  @@index([userId, date])
+  @@index([userId, type])
+  @@index([userId, status])
+  @@index([clientId])
+  @@index([clientId, status])
+  @@index([dueDate, status])
+  @@index([contractId])
+  @@index([deletedAt])
+  @@index([companyId])
+}
+
+model KanbanColumn {
+  id        String                           @id @default(uuid())
+  title     String
+  order     Int                              @default(0)
+  color     String                           @default("#004949")
+  createdAt DateTime                         @default(now())
+  updatedAt DateTime                         @updatedAt
+  type      Unsupported("KanbanColumnType")?
+  companyId String                           @default("00000000-0000-4000-8000-000000000001")
+  statusKey Unsupported("KanbanTaskStatus")?
+
+  @@index([order])
+  @@index([companyId])
+}
+
+model KanbanTask {
+  id                        String                              @id @default(uuid())
+  title                     String
+  description               String?
+  priority                  Unsupported("KanbanTaskPriority")   @default(dbgenerated("'MEDIUM'::public.\"KanbanTaskPriority\""))
+  order                     Int                                 @default(0)
+  dueDate                   DateTime?
+  columnId                  String
+  createdById               String
+  createdAt                 DateTime                            @default(now())
+  updatedAt                 DateTime                            @updatedAt
+  clientId                  String?
+  referenceUrl              String?
+  internalReviewStatus      Unsupported("InternalReviewStatus") @default(dbgenerated("'NOT_REQUIRED'::public.\"InternalReviewStatus\""))
+  internalReviewNote        String?
+  contentPostId             String?                             @unique(map: "KanbanTask_contentPostId_idx")
+  calendarEventId           String?                             @unique(map: "KanbanTask_calendarEventId_idx")
+  slaResponseDueAt          DateTime?
+  slaResolutionDueAt        DateTime?
+  firstResponseAt           DateTime?
+  resolvedAt                DateTime?
+  companyId                 String                              @default("00000000-0000-4000-8000-000000000001")
+  status                    Unsupported("KanbanTaskStatus")     @default(dbgenerated("'FALTA_GRAVAR'::public.\"KanbanTaskStatus\""))
+  assignedGroupId           String?
+  deletedAt                 DateTime?
+  deletedById               String?
+  isBypassingInternalReview Boolean                             @default(false)
+  publicationDate           DateTime?
+  deliveryDate              DateTime?
+
+  @@index([columnId, order])
+  @@index([clientId])
+  @@index([assignedGroupId])
+  @@index([deletedAt])
+  @@index([companyId])
+  @@index([publicationDate])
+  @@index([deliveryDate])
+}
+
+model KanbanTaskAsset {
+  id           String   @id @default(uuid())
+  taskId       String
+  fileName     String
+  fileUrl      String
+  fileType     String
+  fileSize     Int?
+  uploadedById String
+  uploadedAt   DateTime @default(now())
+  caption      String?
+
+  @@index([taskId, uploadedAt])
+}
+
+model KanbanTaskAssignee {
+  taskId String
+  userId String
+
+  @@id([taskId, userId])
+  @@index([userId])
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+model TaskHistory {
+  id        String   @id @default(uuid())
+  taskId    String
+  userId    String
+  action    String
+  createdAt DateTime @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+model CalendarEvent {
+  id              String                       @id @default(uuid())
+  title           String
+  description     String?
+  startAt         DateTime
+  endAt           DateTime
+  category        Unsupported("EventCategory") @default(dbgenerated("'MEETING'::public.\"EventCategory\""))
+  color           String?
+  isPending       Boolean                      @default(false)
+  createdById     String
+  assigneeId      String?
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+  clientId        String?
+  referenceUrl    String?
+  contentPostId   String?                      @unique(map: "CalendarEvent_contentPostId_idx")
+  companyId       String                       @default("00000000-0000-4000-8000-000000000001")
+  assignedGroupId String?
+
+  @@index([startAt])
+  @@index([assigneeId])
+  @@index([assignedGroupId])
+  @@index([clientId])
+  @@index([companyId])
+}
+
+model Client {
+  id            String   @id @default(uuid())
+  companyName   String
+  contactName   String?
+  email         String?
+  phone         String?
+  instagram     String?
+  website       String?
+  street        String?
+  number        String?
+  city          String?
+  state         String?
+  zipCode       String?
+  notes         String?
+  avatarUrl     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  clientGroupId String?
+  document      String?
+  neighborhood  String?
+  companyId     String   @default("00000000-0000-4000-8000-000000000001")
+  isActive      Boolean  @default(true)
+  crm_enabled   Boolean  @default(false)
+
+  @@index([companyName])
+  @@index([clientGroupId])
+  @@index([companyId])
+}
+
+model UserCrmScope {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  clientId        String?  @map("client_id")
+  includeInternal Boolean  @default(false) @map("include_internal")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, clientId], map: "user_crm_scopes_user_id_client_id_idx")
+  @@index([userId])
+  @@index([clientId])
+  @@map("user_crm_scopes")
+}
+
+model UserGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  color       String   @default("#E8C39E")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  companyId   String   @default("00000000-0000-4000-8000-000000000001")
+
+  @@unique([companyId, name], map: "UserGroup_companyId_name_idx")
+  @@index([companyId])
+}
+
+model UserGroupMember {
+  userId      String
+  userGroupId String
+  assignedAt  DateTime @default(now())
+
+  @@id([userId, userGroupId])
+  @@index([userGroupId])
+}
+
+model ClientGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  color       String   @default("#E8C39E")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  companyId   String   @default("00000000-0000-4000-8000-000000000001")
+
+  @@unique([companyId, name], map: "ClientGroup_companyId_name_idx")
+  @@index([companyId])
+}
+
+model ClientReport {
+  id            String   @id @default(uuid())
+  clientId      String
+  month         Int
+  year          Int
+  title         String
+  data          Json
+  generatedById String
+  createdAt     DateTime @default(now())
+  companyId     String   @default("00000000-0000-4000-8000-000000000001")
+
+  @@unique([clientId, month, year], map: "ClientReport_clientId_month_year_idx")
+  @@index([clientId])
+  @@index([companyId])
+}
+
+model ClientPortalToken {
+  id             String    @id @default(uuid())
+  clientId       String    @unique(map: "ClientPortalToken_clientId_idx")
+  tokenHash      String    @unique(map: "ClientPortalToken_tokenHash_idx")
+  isActive       Boolean   @default(true)
+  expiresAt      DateTime?
+  lastAccessedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model ClientPortalUser {
+  id                 String   @id @default(uuid())
+  clientId           String   @unique(map: "ClientPortalUser_clientId_idx")
+  email              String   @unique(map: "ClientPortalUser_email_idx")
+  passwordHash       String
+  temporaryPassword  String?
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model ClientPortalAuthToken {
+  id           String   @id @default(uuid())
+  tokenHash    String   @unique(map: "ClientPortalAuthToken_tokenHash_idx")
+  portalUserId String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([portalUserId])
+}
+
+model ClientBrief {
+  id                 String                            @id @default(uuid())
+  clientId           String
+  title              String
+  content            String
+  source             String                            @default("portal")
+  createdAt          DateTime                          @default(now())
+  status             Unsupported("ClientBriefStatus")  @default(dbgenerated("'OPEN'::public.\"ClientBriefStatus\""))
+  priority           Unsupported("KanbanTaskPriority") @default(dbgenerated("'MEDIUM'::public.\"KanbanTaskPriority\""))
+  assignedToId       String?
+  slaResponseDueAt   DateTime?
+  slaResolutionDueAt DateTime?
+  firstResponseAt    DateTime?
+  resolvedAt         DateTime?
+  updatedAt          DateTime                          @updatedAt
+  companyId          String                            @default("00000000-0000-4000-8000-000000000001")
+
+  @@index([clientId, createdAt])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([companyId])
+}
+
+model ContentPost {
+  id                   String                              @id @default(uuid())
+  title                String
+  platform             Unsupported("ContentPlatform")
+  scheduledDate        DateTime?
+  status               Unsupported("ContentPostStatus")    @default(dbgenerated("'DRAFT'::public.\"ContentPostStatus\""))
+  copy                 String
+  userId               String
+  createdAt            DateTime                            @default(now())
+  updatedAt            DateTime                            @updatedAt
+  format               Unsupported("ContentPostFormat")    @default(dbgenerated("'STATIC'::public.\"ContentPostFormat\""))
+  clientId             String
+  assigneeId           String?
+  referenceUrl         String?
+  internalReviewStatus Unsupported("InternalReviewStatus") @default(dbgenerated("'NOT_REQUIRED'::public.\"InternalReviewStatus\""))
+  internalReviewNote   String?
+  companyId            String                              @default("00000000-0000-4000-8000-000000000001")
+
+  @@index([platform])
+  @@index([status])
+  @@index([internalReviewStatus])
+  @@index([scheduledDate])
+  @@index([userId])
+  @@index([clientId])
+  @@index([companyId])
+}
+
+model PostVersion {
+  id            String   @id @default(uuid())
+  postId        String
+  versionNumber Int
+  title         String
+  copyText      String
+  mediaUrls     String[]
+  createdById   String
+  createdAt     DateTime @default(now())
+
+  @@unique([postId, versionNumber], map: "PostVersion_postId_versionNumber_idx")
+  @@index([postId])
+  @@index([createdById])
+}
+
+model PostFeedback {
+  id        String                          @id @default(uuid())
+  postId    String
+  versionId String?
+  userId    String
+  comment   String
+  type      Unsupported("PostFeedbackType")
+  createdAt DateTime                        @default(now())
+
+  @@index([postId])
+  @@index([versionId])
+  @@index([userId])
+}
+
+model ContentAttachment {
+  id        String   @id @default(uuid())
+  postId    String
+  name      String
+  url       String
+  mimeType  String?
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
+
+model Contract {
+  id               String                          @id @default(uuid())
+  clientId         String
+  title            String
+  status           Unsupported("ContractStatus")   @default(dbgenerated("'DRAFT'::public.\"ContractStatus\""))
+  recurringValue   Decimal                         @db.Decimal(12, 2)
+  paymentFrequency Unsupported("PaymentFrequency") @default(dbgenerated("'MONTHLY'::public.\"PaymentFrequency\""))
+  startDate        DateTime
+  endDate          DateTime?
+  termsContent     String
+  pdfUrl           String?
+  createdById      String
+  createdAt        DateTime                        @default(now())
+  updatedAt        DateTime                        @updatedAt
+  companyId        String                          @default("00000000-0000-4000-8000-000000000001")
+
+  @@index([clientId])
+  @@index([status])
+  @@index([startDate])
+  @@index([companyId])
+}
+
+model Proposal {
+  id                 String                        @id @default(uuid())
+  clientId           String
+  title              String
+  status             Unsupported("ProposalStatus") @default(dbgenerated("'DRAFT'::public.\"ProposalStatus\""))
+  validUntil         DateTime?
+  totalValue         Decimal                       @default(0) @db.Decimal(12, 2)
+  structureContent   String?
+  structureImageUrls String[]                      @default([])
+  schedulingUrl      String?
+  publishedAt        DateTime?
+  createdById        String
+  createdAt          DateTime                      @default(now())
+  updatedAt          DateTime                      @updatedAt
+  coverVideoUrl      String?
+  coverImageUrl      String?
+  companyId          String                        @default("00000000-0000-4000-8000-000000000001")
+
+  @@index([clientId])
+  @@index([status])
+  @@index([validUntil])
+  @@index([companyId])
+}
+
+model ProposalItem {
+  id          String   @id @default(uuid())
+  proposalId  String
+  name        String
+  description String?
+  quantity    Int      @default(1)
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([proposalId])
+}
+
+model ProposalProject {
+  id          String   @id @default(uuid())
+  proposalId  String
+  title       String
+  description String?
+  imageUrl    String?
+  projectUrl  String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([proposalId])
+}
+
+model Asset {
+  id           String                       @id @default(uuid())
+  clientId     String
+  fileName     String
+  fileType     Unsupported("AssetFileType") @default(dbgenerated("'DOCUMENT'::public.\"AssetFileType\""))
+  fileUrl      String
+  fileSize     Int                          @default(0)
+  uploadedById String?
+  uploadedAt   DateTime                     @default(now())
+  companyId    String                       @default("00000000-0000-4000-8000-000000000001")
+
+  @@index([clientId])
+  @@index([fileType])
+  @@index([companyId])
+}
+
+model Notification {
+  id        String                          @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      Unsupported("NotificationType")
+  isRead    Boolean                         @default(false)
+  createdAt DateTime                        @default(now())
+  companyId String                          @default("00000000-0000-4000-8000-000000000001")
+  taskId    String?
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([companyId])
+  @@index([type, taskId, createdAt])
+  @@map("notifications")
+}
+
+model UserSettings {
+  id              String   @id @default(uuid())
+  userId          String   @unique(map: "UserSettings_userId_idx")
+  primaryColor    String   @default("#004949")
+  accentColor     String   @default("#E8C39E")
+  backgroundColor String   @default("#FFFFFF")
+  textColor       String   @default("#0F172A")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  sidebarColor    String   @default("#004949")
+}
+
+model AgencySettings {
+  id                         String   @id @default(uuid())
+  agencyName                 String   @default("ATRIA ERP")
+  logoUrl                    String?
+  faviconUrl                 String?
+  primaryColor               String   @default("#004949")
+  accentColor                String   @default("#E8C39E")
+  updatedAt                  DateTime @updatedAt
+  slackWebhookUrl            String?
+  discordWebhookUrl          String?
+  notifyOnPostRejected       Boolean  @default(true)
+  notifyOnContractSigned     Boolean  @default(true)
+  slaResponseCriticalHours   Int      @default(1)
+  slaResponseHighHours       Int      @default(4)
+  slaResponseMediumHours     Int      @default(8)
+  slaResponseLowHours        Int      @default(24)
+  slaResponsePlannedHours    Int      @default(48)
+  slaResolutionCriticalHours Int      @default(4)
+  slaResolutionHighHours     Int      @default(24)
+  slaResolutionMediumHours   Int      @default(72)
+  slaResolutionLowHours      Int      @default(168)
+  slaResolutionPlannedHours  Int      @default(336)
+  companyId                  String   @unique(map: "AgencySettings_companyId_idx") @default("00000000-0000-4000-8000-000000000001")
+}
+
+model ArtTypePricing {
+  id            String   @id @default(uuid())
+  artType       String   @map("art_type")
+  pricePerPiece Decimal  @map("price_per_piece") @db.Decimal(12, 2)
+  description   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  companyId     String   @default("00000000-0000-4000-8000-000000000001")
+
+  @@unique([companyId, artType], map: "art_type_pricing_companyId_art_type_idx")
+  @@index([companyId])
+  @@map("art_type_pricing")
+}
+
+model CalendarEntry {
+  id                 String   @id @default(uuid())
+  month              Int
+  year               Int
+  clientId           String   @map("client_id")
+  artType            String   @map("art_type")
+  plannedDate        String   @map("planned_date")
+  designerId         String   @map("designer_id")
+  title              String
+  description        String?
+  taskId             String?  @map("task_id")
+  productionDeadline String?  @map("production_deadline")
+  storyQuantity      Int?     @map("story_quantity")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  companyId          String   @default("00000000-0000-4000-8000-000000000001")
+
+  @@index([clientId])
+  @@index([year, month])
+  @@index([designerId])
+  @@index([companyId])
+  @@map("calendar_entries")
+}
+
+model AgendaEvent {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  eventDate    String   @map("event_date")
+  startTime    String?  @map("start_time")
+  endTime      String?  @map("end_time")
+  eventType    String   @map("event_type")
+  recurrence   String   @default("none")
+  participants Json     @default("[]")
+  meetingLink  String?  @map("meeting_link")
+  location     String?
+  priority     String   @default("medium")
+  status       String   @default("scheduled")
+  createdBy    String   @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  companyId    String   @default("00000000-0000-4000-8000-000000000001")
+
+  @@index([eventDate])
+  @@index([createdBy])
+  @@index([companyId])
+  @@map("agenda_events")
+}
+
+model AgendaConfirmation {
+  id          String   @id @default(uuid())
+  eventId     String   @map("event_id")
+  userId      String   @map("user_id")
+  confirmedAt DateTime @default(now()) @map("confirmed_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([eventId, userId], map: "agenda_confirmations_event_id_user_id_idx")
+  @@index([userId])
+  @@map("agenda_confirmations")
+}
+
+model ClientRequest {
+  id              String                                  @id @default(uuid())
+  clientId        String                                  @map("client_id")
+  title           String
+  description     String?
+  attachments     Json?                                   @default("[]")
+  status          Unsupported("ClientRequestStatus")      @default(dbgenerated("'PENDING'::public.\"ClientRequestStatus\""))
+  relatedTaskId   String?                                 @map("related_task_id")
+  createdAt       DateTime                                @default(now()) @map("created_at")
+  updatedAt       DateTime                                @updatedAt @map("updated_at")
+  companyId       String                                  @default("00000000-0000-4000-8000-000000000001")
+  contentType     Unsupported("ClientRequestContentType") @default(dbgenerated("'REDE_SOCIAL'::public.\"ClientRequestContentType\""))
+  referenceLinks  Json                                    @default("[]")
+  rejectionReason String?                                 @map("rejection_reason")
+
+  @@index([clientId])
+  @@index([status])
+  @@index([companyId])
+  @@index([contentType])
+  @@map("client_requests")
+}
+
+model ClientFinancialAttachment {
+  id             String                                       @id @default(uuid())
+  clientId       String                                       @map("client_id")
+  organizationId String                                       @map("organization_id")
+  fileUrl        String                                       @map("file_url")
+  storageBucket  String?                                      @map("storage_bucket")
+  storagePath    String?                                      @map("storage_path")
+  fileType       Unsupported("ClientFinancialAttachmentType") @map("file_type")
+  description    String?
+  uploadedAt     DateTime                                     @default(now()) @map("uploaded_at")
+
+  @@index([clientId, uploadedAt])
+  @@index([organizationId])
+  @@map("client_financial_attachments")
+}
+
+model ClientRequestComment {
+  id        String   @id @default(uuid())
+  requestId String   @map("request_id")
+  authorId  String   @map("author_id")
+  body      String
+  parentId  String?  @map("parent_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([requestId, createdAt])
+  @@index([authorId])
+  @@index([parentId])
+  @@map("client_request_comments")
+}
+
+model Task {
+  id                 String   @id @default(uuid())
+  companyId          String   @default("00000000-0000-4000-8000-000000000001") @map("company_id")
+  title              String
+  description        String?  @default("")
+  artType            String   @map("art_type")
+  status             String   @default("em_producao")
+  assignedDesignerId String?  @map("assigned_designer_id")
+  clientId           String?  @map("client_id")
+  dueDate            String?  @map("due_date")
+  plannedDate        String?  @map("planned_date")
+  totalTimeSeconds   Int      @default(0) @map("total_time_seconds")
+  isTimerRunning     Boolean  @default(false) @map("is_timer_running")
+  timerStartedAt     String?  @map("timer_started_at")
+  versions           Json     @default("[]")
+  currentVersion     Int      @default(0) @map("current_version")
+  revisionCount      Int      @default(0) @map("revision_count")
+  approvalFeedback   String?  @map("approval_feedback")
+  rejectionFeedback  String?  @map("rejection_feedback")
+  internalFeedback   String?  @map("internal_feedback")
+  priority           String   @default("medium")
+  tags               Json     @default("[]")
+  fromCalendar       Boolean  @default(false) @map("from_calendar")
+  productionValue    Decimal? @map("production_value") @db.Decimal(12, 2)
+  artFileUrl         String?  @map("art_file_url")
+  artFileUrls        Json     @default("[]") @map("art_file_urls")
+  caption            String?
+  designerComment    String?  @map("designer_comment")
+  storyQuantity      Int?     @map("story_quantity")
+  carouselSlots      Json     @default("[]") @map("carousel_slots")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([assignedDesignerId])
+  @@index([status])
+  @@map("tasks")
+}
+
+model ClientReportFile {
+  id         String    @id @default(uuid())
+  clientId   String    @map("client_id")
+  title      String
+  fileUrl    String    @map("file_url")
+  fileType   String    @map("file_type")
+  uploadedBy String    @map("uploaded_by")
+  status     String    @default("pending")
+  approvedAt DateTime? @map("approved_at")
+  approvedBy String?   @map("approved_by")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  companyId  String    @default("00000000-0000-4000-8000-000000000001")
+
+  @@index([clientId])
+  @@index([status])
+  @@index([companyId])
+  @@map("client_reports")
+}
+
+model LeadStage {
+  id        String   @id @default(uuid())
+  companyId String   @default("00000000-0000-4000-8000-000000000001") @map("tenant_id")
+  name      String
+  order     Int      @default(0)
+  color     String   @default("#64748B")
+  key       String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([companyId, name], map: "lead_stages_tenant_id_name_idx")
+  @@index([companyId, order])
+  @@map("lead_stages")
+}
+
+model CrmReminderTask {
+  id          String                               @id @default(uuid())
+  companyId   String                               @default("00000000-0000-4000-8000-000000000001") @map("company_id")
+  leadId      String                               @map("lead_id")
+  title       String
+  dueDate     DateTime                             @map("due_date")
+  status      Unsupported("CrmReminderTaskStatus") @default(dbgenerated("'PENDING'::public.\"CrmReminderTaskStatus\""))
+  completedAt DateTime?                            @map("completed_at")
+  createdAt   DateTime                             @default(now()) @map("created_at")
+  updatedAt   DateTime                             @updatedAt @map("updated_at")
+
+  @@index([companyId, status, dueDate])
+  @@index([leadId])
+  @@map("crm_reminder_tasks")
+}
+
+model Lead {
+  id             String                       @id @default(uuid())
+  companyId      String                       @default("00000000-0000-4000-8000-000000000001")
+  name           String
+  phone          String?
+  email          String?
+  website        String?
+  address        String?
+  city           String?
+  neighborhood   String?
+  category       String?
+  placeId        String?                      @map("place_id")
+  rating         Float?
+  reviewsCount   Int?                         @map("reviews_count")
+  latitude       Float?
+  longitude      Float?
+  status         Unsupported("LeadStatus")    @default(dbgenerated("'PRE_VENDA'::public.\"LeadStatus\""))
+  aiScore        Int?                         @map("ai_score")
+  aiNotes        String?                      @map("ai_notes")
+  source         String                       @default("outscraper")
+  rawData        Json?                        @map("raw_data")
+  createdAt      DateTime                     @default(now()) @map("created_at")
+  updatedAt      DateTime                     @updatedAt @map("updated_at")
+  kanbanTracked  Boolean                      @default(false) @map("kanban_tracked")
+  kanbanOrder    Int                          @default(0) @map("kanban_order")
+  deletedAt      DateTime?                    @map("deleted_at")
+  deletedById    String?                      @map("deleted_by")
+  crmStatus      Unsupported("CrmLeadStatus") @default(dbgenerated("'ACTIVE'::public.\"CrmLeadStatus\"")) @map("crm_status")
+  isMinimized    Boolean                      @default(false) @map("is_minimized")
+  organizationId String?                      @map("organization_id")
+  stageId        String?                      @map("stage_id")
+
+  @@index([companyId])
+  @@index([organizationId])
+  @@index([placeId])
+  @@index([status])
+  @@index([stageId])
+  @@index([kanbanTracked, status, kanbanOrder])
+  @@index([city])
+  @@index([deletedAt])
+  @@map("leads")
+}
+
+model LeadComment {
+  id        String   @id @default(uuid())
+  leadId    String   @map("lead_id")
+  userId    String   @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([leadId, createdAt])
+  @@index([userId])
+  @@map("lead_comments")
+}
+
+model DeletionHistory {
+  id          String                            @id @default(uuid())
+  companyId   String                            @default("00000000-0000-4000-8000-000000000001")
+  entityType  Unsupported("DeletionEntityType")
+  entityId    String
+  title       String?
+  metadata    Json?
+  deletedById String
+  deletedAt   DateTime                          @default(now())
+
+  @@index([companyId, deletedAt])
+  @@index([entityType, deletedAt])
+  @@index([deletedById])
+  @@map("deletion_history")
+}
+
+model Deliverable {
+  id             String                                   @id @default(uuid())
+  companyId      String                                   @default("00000000-0000-4000-8000-000000000001")
+  title          String
+  clientId       String?
+  kanbanTaskId   String?                                  @unique(map: "deliverables_kanbanTaskId_idx")
+  contentPostId  String?                                  @unique(map: "deliverables_contentPostId_idx")
+  approvalStatus Unsupported("DeliverableApprovalStatus") @default(dbgenerated("'DRAFT'::public.\"DeliverableApprovalStatus\""))
+  approvedAt     DateTime?
+  approvedById   String?
+  createdAt      DateTime                                 @default(now())
+  updatedAt      DateTime                                 @updatedAt
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([approvalStatus])
+  @@map("deliverables")
+}
+
+model DeliverableItem {
+  id              String                               @id @default(uuid())
+  deliverableId   String
+  mediaUrl        String
+  mediaType       Unsupported("DeliverableMediaType")  @default(dbgenerated("'OTHER'::public.\"DeliverableMediaType\""))
+  status          Unsupported("DeliverableItemStatus") @default(dbgenerated("'PENDING'::public.\"DeliverableItemStatus\""))
+  adjustmentNotes String?
+  fileName        String?
+  fileSize        Int?
+  storageBucket   String?
+  storagePath     String?
+  sourceAssetId   String?
+  sortOrder       Int                                  @default(0)
+  createdAt       DateTime                             @default(now())
+  updatedAt       DateTime                             @updatedAt
+
+  @@index([deliverableId, sortOrder])
+  @@index([status])
+  @@index([sourceAssetId])
+  @@map("deliverable_items")
+}
+
+model LegacyProfile {
+  id            String    @id
+  name          String
+  email         String
+  password      String?
+  role          String    @default("client")
+  avatar        String?
+  company       String?
+  contractStart String?   @map("contract_start")
+  contractEnd   String?   @map("contract_end")
+  contractValue Decimal?  @map("contract_value") @db.Decimal
+  isOnline      Boolean?  @default(false) @map("is_online")
+  currentTaskId String?   @map("current_task_id")
+  isActive      Boolean?  @default(true) @map("is_active")
+  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("profiles")
+}

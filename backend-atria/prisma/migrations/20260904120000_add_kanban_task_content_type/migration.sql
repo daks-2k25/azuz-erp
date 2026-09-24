@@ -1,0 +1,7 @@
+DO $$ BEGIN
+    CREATE TYPE "KanbanTaskContentType" AS ENUM ('VIDEO_WITH_SCRIPT', 'STATIC', 'CAROUSEL', 'STORIES_NO_SCRIPT');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
+ALTER TABLE "KanbanTask" ADD COLUMN IF NOT EXISTS "contentType" "KanbanTaskContentType" NOT NULL DEFAULT 'VIDEO_WITH_SCRIPT';

@@ -1,0 +1,91 @@
+"use client";
+
+import { useMemo } from "react";
+import { useAuth } from "@/contexts/auth-context";
+import { useAppUpdatesAccess } from "@/hooks/use-app-updates";
+import { useHasActiveClockProfile } from "@/hooks/use-time-clock";
+import { canAccessRoute } from "@/lib/navigation-access";
+import { isMasterRole } from "@/lib/permissions";
+import {
+  navSections,
+  TIME_CLOCK_ROUTE,
+  type NavSection,
+} from "@/components/layout/navigation";
+
+export function useVisibleNavSections() {
+  const { user } = useAuth();
+  const { data: appUpdatesAccess } = useAppUpdatesAccess();
+  const appUpdatesBadgeCount = appUpdatesAccess?.unreadCount ?? 0;
+  const hasActiveClockProfile = useHasActiveClockProfile();
+
+  const sections = useMemo<NavSection[]>(() => {
+    return navSections
+      .map((section) => ({
+        ...section,
+        items: section.items
+          .map((item) => {
+            if (item.href === TIME_CLOCK_ROUTE && !hasActiveClockProfile) {
+              return null;
+            }
+
+            if (item.href === "/app-updates") {
+              const canSeeAppUpdates =
+                isMasterRole(user?.role) || appUpdatesAccess?.canView;
+              if (!canSeeAppUpdates) {
+                return null;
+              }
+            }
+
+            if (!item.children?.length) {
+              return canAccessRoute(user?.role, item.href, user?.permissions)
+                ? item
+                : null;
+            }
+
+            const canManageAppearance = canAccessRoute(
+              user?.role,
+              "/settings/appearance",
+              user?.permissions,
+            );
+
+            const children = item.children.filter((child) => {
+              if (
+                child.href === "/settings/navigation" &&
+                canManageAppearance
+              ) {
+                return false;
+              }
+              return canAccessRoute(
+                user?.role,
+                child.href,
+                user?.permissions,
+              );
+            });
+
+            if (children.length === 0) {
+              return null;
+            }
+
+            if (children.length === 1) {
+              return { ...item, href: children[0].href, children: undefined };
+            }
+
+            return { ...item, href: children[0].href, children };
+          })
+          .filter((item): item is NonNullable<typeof item> => item !== null),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [
+    appUpdatesAccess?.canView,
+    appUpdatesAccess?.unreadCount,
+    hasActiveClockProfile,
+    user?.permissions,
+    user?.role,
+  ]);
+
+  return { sections, appUpdatesBadgeCount };
+}
+
+export function getNavItemBadgeCount(href: string, appUpdatesBadgeCount: number) {
+  return href === "/app-updates" ? appUpdatesBadgeCount : 0;
+}

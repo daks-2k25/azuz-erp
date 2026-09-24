@@ -1,0 +1,158 @@
+{
+  "user": "qa-user-1786105836@atria.test",
+  "generatedAt": "2026-08-07T12:57:24.713Z",
+  "passed": 25,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Auth: Login with new user",
+      "ok": true,
+      "detail": "Logged in as qa-user-1786105836@atria.test",
+      "url": "http://localhost:3000/dashboard"
+    },
+    {
+      "name": "Route: Dashboard",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/dashboard"
+    },
+    {
+      "name": "Route: Meta Insights",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/insights"
+    },
+    {
+      "name": "Route: Criação",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/creation"
+    },
+    {
+      "name": "Route: Kanban",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/kanban"
+    },
+    {
+      "name": "Route: Calendário",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/calendar"
+    },
+    {
+      "name": "Route: Clientes",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/clients"
+    },
+    {
+      "name": "Route: Prospecção de Leads",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/leads"
+    },
+    {
+      "name": "Route: Leads Kanban",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/leads/kanban"
+    },
+    {
+      "name": "Route: Financeiro",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/financial"
+    },
+    {
+      "name": "Route: Contratos",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/contracts"
+    },
+    {
+      "name": "Route: Propostas",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/proposals"
+    },
+    {
+      "name": "Route: Operações",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/operations"
+    },
+    {
+      "name": "Route: Settings Branding",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/settings/branding"
+    },
+    {
+      "name": "Route: Settings Appearance",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/settings/appearance"
+    },
+    {
+      "name": "Route: Settings API Integrations",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/settings/api-integrations"
+    },
+    {
+      "name": "Route: Settings Users",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/settings/users"
+    },
+    {
+      "name": "Route: Assets",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/assets"
+    },
+    {
+      "name": "Route: Reports",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/reports"
+    },
+    {
+      "name": "Route: Resumos",
+      "ok": true,
+      "detail": "Loaded OK (HTTP 200)",
+      "url": "http://localhost:3000/resumos"
+    },
+    {
+      "name": "CRUD: Create client",
+      "ok": true,
+      "detail": "Created \"QA Client 1786107432088\"",
+      "url": "http://localhost:3000/clients"
+    },
+    {
+      "name": "CRUD: New proposal page",
+      "ok": true,
+      "detail": "Proposal form usable; title set to \"QA Proposal 1786107435513\"",
+      "url": "http://localhost:3000/proposals/new"
+    },
+    {
+      "name": "Feature: Kanban board",
+      "ok": true,
+      "detail": "Board UI present; pipeline OK",
+      "url": "http://localhost:3000/kanban"
+    },
+    {
+      "name": "Feature: Users settings",
+      "ok": true,
+      "detail": "Users UI present (Membros (15)); /users statuses=200",
+      "url": "http://localhost:3000/settings/users"
+    },
+    {
+      "name": "Auth: Forgot password page",
+      "ok": true,
+      "detail": "Page loaded",
+      "url": "http://localhost:3000/forgot-password"
+    }
+  ]
+}

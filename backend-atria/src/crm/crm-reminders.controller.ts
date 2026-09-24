@@ -1,0 +1,28 @@
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { AnyPermissions } from '../auth/decorators/any-permissions.decorator';
+import {
+  CurrentUser,
+  type AuthenticatedUser,
+} from '../auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { getRequiredCrmPermissions } from '../auth/utils/rbac';
+import { LeadsService } from '../leads/leads.service';
+import { UpdateCrmReminderDto } from './dto/update-crm-reminder.dto';
+
+@Controller('crm/reminders')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
+@AnyPermissions(...getRequiredCrmPermissions())
+export class CrmRemindersController {
+  constructor(private readonly leadsService: LeadsService) {}
+
+  @Get()
+  findBoard(@CurrentUser() user: AuthenticatedUser) {
+    return this.leadsService.findReminderBoard(user);
+  }
+
+  @Patch(':id')
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateCrmReminderDto) {
+    return this.leadsService.updateReminderStatus(id, dto.status);
+  }
+}
