@@ -60,6 +60,11 @@ model Company {
   appUpdates                 AppUpdate[]
   tasks                      Task[]
   leadCalls                  LeadCall[]
+  workSchedules              WorkSchedule[]
+  employeeProfiles           EmployeeProfile[]
+  timeClockCounter           TimeClockCounter?
+  timeClockEntries           TimeClockEntry[]
+  timeAdjustmentRequests     TimeAdjustmentRequest[]
 }
 
 model Role {
@@ -129,6 +134,8 @@ model User {
   systemSuggestions            SystemSuggestion[]
   appUpdatesCreated            AppUpdate[]
   leadCalls                    LeadCall[]
+  employeeProfile              EmployeeProfile?
+  reviewedTimeAdjustments      TimeAdjustmentRequest[] @relation("TimeAdjustmentReviewer")
 
   @@unique([companyId, email])
   @@index([clientId])
@@ -1361,6 +1368,7 @@ enum NotificationType {
   NEW_REQUEST
   SYSTEM
   APP_UPDATE
+  TIME_CLOCK_REMINDER
 }
 
 enum TransactionType {
@@ -1624,4 +1632,147 @@ model AppUpdate {
   @@index([createdById])
   @@index([isPublished])
   @@map("app_updates")
+}
+
+enum EmploymentType {
+  CLT
+}
+
+enum TimeClockEntryType {
+  CLOCK_IN
+  BREAK_START
+  BREAK_END
+  CLOCK_OUT
+}
+
+enum TimeClockEntryOrigin {
+  EMPLOYEE
+  ADJUSTMENT
+}
+
+enum TimeAdjustmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model WorkSchedule {
+  id                       String            @id @default(uuid())
+  companyId                String            @map("company_id")
+  name                     String
+  reminderToleranceMinutes Int               @default(15) @map("reminder_tolerance_minutes")
+  isActive                 Boolean           @default(true) @map("is_active")
+  createdAt                DateTime          @default(now()) @map("created_at")
+  updatedAt                DateTime          @updatedAt @map("updated_at")
+  company                  Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  days                     WorkScheduleDay[]
+  employeeProfiles         EmployeeProfile[]
+
+  @@unique([companyId, name])
+  @@map("work_schedules")
+}
+
+/// Horários em minutos desde 00:00 (ex.: 08:00 = 480). weekday ISO: 1 = segunda ... 7 = domingo.
+model WorkScheduleDay {
+  id                String       @id @default(uuid())
+  workScheduleId    String       @map("work_schedule_id")
+  weekday           Int
+  startMinutes      Int          @map("start_minutes")
+  breakStartMinutes Int          @map("break_start_minutes")
+  breakEndMinutes   Int          @map("break_end_minutes")
+  endMinutes        Int          @map("end_minutes")
+  workSchedule      WorkSchedule @relation(fields: [workScheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([workScheduleId, weekday])
+  @@map("work_schedule_days")
+}
+
+model EmployeeProfile {
+  id                 String                  @id @default(uuid())
+  companyId          String                  @map("company_id")
+  userId             String                  @unique @map("user_id")
+  employmentType     EmploymentType          @default(CLT) @map("employment_type")
+  admissionDate      DateTime                @map("admission_date") @db.Date
+  workScheduleId     String                  @map("work_schedule_id")
+  isActive           Boolean                 @default(true) @map("is_active")
+  createdAt          DateTime                @default(now()) @map("created_at")
+  updatedAt          DateTime                @updatedAt @map("updated_at")
+  company            Company                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  workSchedule       WorkSchedule            @relation(fields: [workScheduleId], references: [id], onDelete: Restrict)
+  timeClockEntries   TimeClockEntry[]
+  adjustmentRequests TimeAdjustmentRequest[]
+  reminders          TimeClockReminder[]
+
+  @@index([companyId, isActive])
+  @@map("employee_profiles")
+}
+
+/// Contador sequencial de marcações por empresa (NSR).
+model TimeClockCounter {
+  companyId          String  @id @map("company_id")
+  lastSequenceNumber BigInt  @default(0) @map("last_sequence_number")
+  company            Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("time_clock_counters")
+}
+
+/// Somente inserção: um trigger no banco bloqueia UPDATE. Correções são feitas via TimeAdjustmentRequest.
+model TimeClockEntry {
+  id                  String                  @id @default(uuid())
+  companyId           String                  @map("company_id")
+  employeeProfileId   String                  @map("employee_profile_id")
+  sequenceNumber      BigInt                  @map("sequence_number")
+  entryType           TimeClockEntryType      @map("entry_type")
+  workDate            DateTime                @map("work_date") @db.Date
+  recordedAt          DateTime                @map("recorded_at")
+  origin              TimeClockEntryOrigin    @default(EMPLOYEE)
+  adjustmentRequestId String?                 @unique @map("adjustment_request_id")
+  createdAt           DateTime                @default(now()) @map("created_at")
+  company             Company                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employeeProfile     EmployeeProfile         @relation(fields: [employeeProfileId], references: [id], onDelete: Restrict)
+  adjustmentRequest   TimeAdjustmentRequest?  @relation("AdjustmentResultEntry", fields: [adjustmentRequestId], references: [id], onDelete: Restrict)
+  replacedBy          TimeAdjustmentRequest[] @relation("AdjustmentReplacedEntry")
+
+  @@unique([companyId, sequenceNumber])
+  @@index([employeeProfileId, workDate])
+  @@map("time_clock_entries")
+}
+
+model TimeAdjustmentRequest {
+  id                String               @id @default(uuid())
+  companyId         String               @map("company_id")
+  employeeProfileId String               @map("employee_profile_id")
+  workDate          DateTime             @map("work_date") @db.Date
+  entryType         TimeClockEntryType   @map("entry_type")
+  requestedTime     DateTime             @map("requested_time")
+  replacesEntryId   String?              @map("replaces_entry_id")
+  reason            String
+  status            TimeAdjustmentStatus @default(PENDING)
+  reviewedById      String?              @map("reviewed_by_id")
+  reviewedAt        DateTime?            @map("reviewed_at")
+  reviewNote        String?              @map("review_note")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  company           Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employeeProfile   EmployeeProfile      @relation(fields: [employeeProfileId], references: [id], onDelete: Restrict)
+  replacesEntry     TimeClockEntry?      @relation("AdjustmentReplacedEntry", fields: [replacesEntryId], references: [id], onDelete: Restrict)
+  reviewedBy        User?                @relation("TimeAdjustmentReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  resultingEntry    TimeClockEntry?      @relation("AdjustmentResultEntry")
+
+  @@index([companyId, status])
+  @@index([employeeProfileId, workDate])
+  @@map("time_adjustment_requests")
+}
+
+model TimeClockReminder {
+  id                String             @id @default(uuid())
+  employeeProfileId String             @map("employee_profile_id")
+  workDate          DateTime           @map("work_date") @db.Date
+  entryType         TimeClockEntryType @map("entry_type")
+  sentAt            DateTime           @default(now()) @map("sent_at")
+  employeeProfile   EmployeeProfile    @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeProfileId, workDate, entryType])
+  @@map("time_clock_reminders")
 }

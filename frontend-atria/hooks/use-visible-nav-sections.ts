@@ -3,14 +3,20 @@
 import { useMemo } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useAppUpdatesAccess } from "@/hooks/use-app-updates";
+import { useHasActiveClockProfile } from "@/hooks/use-time-clock";
 import { canAccessRoute } from "@/lib/navigation-access";
 import { isMasterRole } from "@/lib/permissions";
-import { navSections, type NavSection } from "@/components/layout/navigation";
+import {
+  navSections,
+  TIME_CLOCK_ROUTE,
+  type NavSection,
+} from "@/components/layout/navigation";
 
 export function useVisibleNavSections() {
   const { user } = useAuth();
   const { data: appUpdatesAccess } = useAppUpdatesAccess();
   const appUpdatesBadgeCount = appUpdatesAccess?.unreadCount ?? 0;
+  const hasActiveClockProfile = useHasActiveClockProfile();
 
   const sections = useMemo<NavSection[]>(() => {
     return navSections
@@ -18,6 +24,10 @@ export function useVisibleNavSections() {
         ...section,
         items: section.items
           .map((item) => {
+            if (item.href === TIME_CLOCK_ROUTE && !hasActiveClockProfile) {
+              return null;
+            }
+
             if (item.href === "/app-updates") {
               const canSeeAppUpdates =
                 isMasterRole(user?.role) || appUpdatesAccess?.canView;
@@ -68,6 +78,7 @@ export function useVisibleNavSections() {
   }, [
     appUpdatesAccess?.canView,
     appUpdatesAccess?.unreadCount,
+    hasActiveClockProfile,
     user?.permissions,
     user?.role,
   ]);

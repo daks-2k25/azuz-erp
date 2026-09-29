@@ -13,6 +13,7 @@ const links = [
   { href: "/settings/api-integrations", label: "Integrações / APIs" },
   { href: "/settings/client-sdr", label: "SDR Cliente" },
   { href: "/settings/sla", label: "SLA" },
+  { href: "/settings/ponto", label: "Ponto CLT" },
 ];
 
 export function SettingsNav() {

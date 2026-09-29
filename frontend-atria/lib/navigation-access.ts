@@ -25,6 +25,7 @@ const ROUTE_PERMISSIONS: Record<string, PermissionKey[]> = {
   "/settings/client-sdr": [Permission.SETTINGS_MANAGE],
   "/settings/sla": [Permission.SETTINGS_MANAGE],
   "/settings/users": [Permission.USERS_MANAGE],
+  "/settings/ponto": [Permission.TIMECLOCK_MANAGE],
 };
 
 function resolveAccessRouteKey(href: string): string {

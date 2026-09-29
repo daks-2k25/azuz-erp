@@ -60,3 +60,15 @@ export const appUpdateKeys = {
   list: (companyId: string) => ["app-updates", companyId, "list"] as const,
   root: ["app-updates"] as const,
 };
+
+export const timeTrackingKeys = {
+  workSchedules: (companyId: string) =>
+    ["time-tracking", companyId, "work-schedules"] as const,
+  employees: (companyId: string) =>
+    ["time-tracking", companyId, "employees"] as const,
+  myProfile: (companyId: string) =>
+    ["time-tracking", companyId, "my-profile"] as const,
+  todayClock: (companyId: string) =>
+    ["time-tracking", companyId, "today-clock"] as const,
+  root: ["time-tracking"] as const,
+};

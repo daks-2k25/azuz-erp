@@ -44,6 +44,7 @@ import { SettingsModule } from './settings/settings.module';
 import { SlaModule } from './sla/sla.module';
 import { SuggestionsModule } from './suggestions/suggestions.module';
 import { SupabaseModule } from './supabase/supabase.module';
+import { TimeTrackingModule } from './time-tracking/time-tracking.module';
 import { UserGroupsModule } from './user-groups/user-groups.module';
 import { UsersModule } from './users/users.module';
 import { VoiceModule } from './voice/voice.module';
@@ -100,6 +101,7 @@ import { LeadMinerModule } from './leadminer/leadminer.module';
     ReportsModule,
     SettingsModule,
     SuggestionsModule,
+    TimeTrackingModule,
     UserGroupsModule,
     UsersModule,
     VoiceModule,

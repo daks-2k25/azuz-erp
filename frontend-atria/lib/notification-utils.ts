@@ -1,3 +1,4 @@
+import { TIME_CLOCK_ROUTE } from "@/components/layout/navigation";
 import type { AppNotification, NotificationType } from "@/services/types";
 
 export type NotificationCategory =
@@ -27,9 +28,13 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   post_rejected: "Conteúdo",
   system: "Sistema",
   app_update: "Atualização",
+  time_clock_reminder: "Ponto",
 };
 
-const DUE_DATE_TYPES = new Set<string>(["due_date_warning"]);
+const DUE_DATE_TYPES = new Set<string>([
+  "due_date_warning",
+  "time_clock_reminder",
+]);
 const NEW_REQUEST_TYPES = new Set<string>(["new_request"]);
 
 export function getNotificationCategory(
@@ -56,6 +61,8 @@ export function getNotificationHref(notification: AppNotification): string {
       return "/content/management";
     case "app_update":
       return "/app-updates";
+    case "time_clock_reminder":
+      return TIME_CLOCK_ROUTE;
     case "system":
       if (notification.title.toLowerCase().includes("aprovação interna")) {
         return "/internal-approvals";

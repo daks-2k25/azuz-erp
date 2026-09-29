@@ -15,6 +15,7 @@ import {
   KanbanSquareIcon,
   MessageSquarePlus,
   Megaphone,
+  Clock,
 } from "lucide-react";
 
 export interface NavChild {
@@ -34,6 +35,9 @@ export interface NavSection {
   items: NavItem[];
 }
 
+/** Rota da aba de ponto: visível apenas para funcionários CLT ativos. */
+export const TIME_CLOCK_ROUTE = "/ponto";
+
 export const navSections: NavSection[] = [
   {
     label: "VISÃO GERAL",
@@ -41,6 +45,10 @@ export const navSections: NavSection[] = [
       { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { name: "Meta Insights", href: "/insights", icon: BarChart2 },
     ],
+  },
+  {
+    label: "MEU PONTO",
+    items: [{ name: "Bater ponto", href: TIME_CLOCK_ROUTE, icon: Clock }],
   },
   {
     label: "PRODUÇÃO",
@@ -100,6 +108,7 @@ export const navSections: NavSection[] = [
           { name: "Integrações APIs", href: "/settings/api-integrations" },
           { name: "SDR Cliente", href: "/settings/client-sdr" },
           { name: "Usuários", href: "/settings/users" },
+          { name: "Ponto CLT", href: "/settings/ponto" },
         ],
       },
     ],

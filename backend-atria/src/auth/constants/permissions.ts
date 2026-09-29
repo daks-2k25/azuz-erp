@@ -15,6 +15,7 @@ export const Permission = {
   DELIVERABLES_OWN: 'deliverables:own',
   FINANCE_ACCESS: 'finance:access',
   SETTINGS_MANAGE: 'settings:manage',
+  TIMECLOCK_MANAGE: 'timeclock:manage',
 } as const;
 
 export type PermissionKey = (typeof Permission)[keyof typeof Permission];
@@ -30,6 +31,7 @@ export const ROLE_PERMISSIONS: Record<RoleName, PermissionKey[]> = {
     Permission.CRM_ALL,
     Permission.FINANCE_ACCESS,
     Permission.SETTINGS_MANAGE,
+    Permission.TIMECLOCK_MANAGE,
   ],
   [RoleName.MANAGER]: [],
   [RoleName.USER]: [],

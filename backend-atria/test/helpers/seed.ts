@@ -10,6 +10,7 @@ import {
   TEST_DESIGNER,
   TEST_DESIGNER_MASTER,
 } from './constants';
+import { cleanupTimeTrackingData } from './time-tracking-cleanup';
 
 type PrismaLike = Pick<
   PrismaClient,
@@ -25,6 +26,10 @@ type PrismaLike = Pick<
   | 'proposal'
   | 'contract'
   | 'clientPortalToken'
+  | 'timeClockEntry'
+  | 'timeAdjustmentRequest'
+  | 'employeeProfile'
+  | 'workSchedule'
 >;
 
 export async function cleanupE2EData(prisma: PrismaLike, runId: string) {
@@ -78,6 +83,11 @@ export async function cleanupE2EData(prisma: PrismaLike, runId: string) {
     where: { email: { in: e2eEmails } },
     select: { id: true },
   });
+  await cleanupTimeTrackingData(
+    prisma,
+    e2eUsers.map((user) => user.id),
+    runId,
+  );
   if (e2eUsers.length > 0) {
     await prisma.kanbanTask.deleteMany({
       where: { createdById: { in: e2eUsers.map((user) => user.id) } },

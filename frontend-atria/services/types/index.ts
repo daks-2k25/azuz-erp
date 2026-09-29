@@ -2181,7 +2181,8 @@ export type NotificationType =
   | "due_date_warning"
   | "new_request"
   | "system"
-  | "app_update";
+  | "app_update"
+  | "time_clock_reminder";
 
 export interface AppNotification {
   id: string;
